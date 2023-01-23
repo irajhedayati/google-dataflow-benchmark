@@ -29,16 +29,16 @@ Support table:
 | Feature            | is supported?      |
 |:-------------------|:-------------------|
 | Streaming          | :heavy_check_mark: |
-| Streaming Engine   | :X:                |
-| Batch              | :X:                |
-| Dataflow Prime     | :X:                |
+| Streaming Engine   | :x:                |
+| Batch              | :x:                |
+| Dataflow Prime     | :x:                |
 | Cost estimate      |                    |
 | - CPU              | :heavy_check_mark: |
 | - memory           | :heavy_check_mark: |
 | - GPU              | :heavy_check_mark: |
 | - Disk             | :heavy_check_mark: |
-| - Streaming Engine | :X:                |
-| - Dataflow Prime   | :X:                |
+| - Streaming Engine | :x:                |
+| - Dataflow Prime   | :x:                |
 
 # Preparation
 
@@ -57,9 +57,7 @@ Install the `google-dataflow-benchmark` tool locally.
     cd google-dataflow-benchmark
     sbt package
     ```
-2. Download a specific version 
-
-[//]: # (TODO add link to the packages on GitHub) 
+2. [Download a specific version](https://github.com/irajhedayati/google-dataflow-benchmark/releases)
 
 Authenticate first:
 
