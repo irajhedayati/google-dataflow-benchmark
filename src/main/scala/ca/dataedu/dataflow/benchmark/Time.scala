@@ -7,7 +7,6 @@ import java.time.{Duration, ZoneId, ZonedDateTime}
 
 object Time {
 
-
   val DataflowMetricDelay: Duration = Duration.ofMinutes(4)
 
   def nowInUtc: ZonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))

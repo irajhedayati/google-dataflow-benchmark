@@ -13,6 +13,9 @@ import java.io.PrintWriter
 import java.time.{Duration, ZonedDateTime}
 import scala.jdk.CollectionConverters._
 
+/** Get the job metrics from the Metrics Service and the Dataflow service, and write the results after normalization and
+  * aggregations
+  */
 class Analyze(config: Config, metricServiceClient: MetricServiceClient) extends LazyLogging {
 
   case class DataflowMetric(name: Metric, scalar: Long)

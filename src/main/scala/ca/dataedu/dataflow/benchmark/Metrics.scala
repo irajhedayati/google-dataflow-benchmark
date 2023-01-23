@@ -9,4 +9,6 @@ object Metrics {
   val TotalShuffleDataProcessed = "TotalShuffleDataProcessed"
   val BillableShuffleDataProcessed = "BillableShuffleDataProcessed"
 
+  val BacklogBytes = "pubsub.googleapis.com/subscription/backlog_bytes"
+
 }

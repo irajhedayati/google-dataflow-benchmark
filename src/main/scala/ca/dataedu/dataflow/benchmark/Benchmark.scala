@@ -13,10 +13,23 @@ import scala.language.postfixOps
 import scala.sys.process._
 import scala.util.{Failure, Success, Try}
 
+/** Run the benchmark and wait for the job to finish
+  */
 class Benchmark(config: Config, metricServiceClient: MetricServiceClient) extends LazyLogging {
 
   private val jobIdRe = "Submitted job: (.\\S*)".r
 
+  /** Prepares the command to launch the Dataflow job and send the command to Dataflow service. Then waits for the job
+    * to complete (the job is complete when the backlog in the input subscription is exhausted) and then drains the job.
+    *
+    * The execution time here includes warm-up and cool-down period as well. But as all the benchmarks have the same
+    * cycle, it can give us a relative run-time to compare.
+    *
+    * @param benchmarkConfig
+    *   the benchmark configuration to run
+    * @return
+    *   the job ID, the time that job is created, and the time that it's finished
+    */
   def run(benchmarkConfig: BenchmarkConfig): Try[(String, ZonedDateTime, ZonedDateTime)] = {
     val dataflowArgs = List(
       s"--project=${config.project}",
@@ -47,12 +60,12 @@ class Benchmark(config: Config, metricServiceClient: MetricServiceClient) extend
     }
   }
 
+  /** Checks the backlog size by querying [[Metrics.BacklogBytes]] metric from Metrics service for the input
+    * subscription. It will do it repeatedly every 10 seconds.
+    */
   private def waitFormCompletion(jobId: String): String = {
     logger.info(s"Job $jobId is created, waiting for completion")
 
-    /** Checks the number of undelivered messages from the Pub/Sub subscription. If it is 0, then the job is complete
-      * and if not, it will try after 10 seconds.
-      */
     @tailrec
     def waitForComplete(): Unit = {
       logger.info("Check the backlog size")
@@ -61,7 +74,7 @@ class Benchmark(config: Config, metricServiceClient: MetricServiceClient) extend
         .newBuilder()
         .setName(ProjectName.of(config.project).toString)
         .setFilter(
-          s"""metric.type = "pubsub.googleapis.com/subscription/backlog_bytes" AND
+          s"""metric.type = "${Metrics.BacklogBytes}" AND
              |resource.labels.subscription_id = "${config.inputPubSubSubscription.getSubscription}"""".stripMargin
         )
         .setView(TimeSeriesView.FULL)
@@ -90,6 +103,14 @@ class Benchmark(config: Config, metricServiceClient: MetricServiceClient) extend
     jobId
   }
 
+  /** Sends a drain command to Dataflow service for this job. It is possible that the job is not ready to drain, so it
+    * will wait 10 seconds and try again. Then waits for the job to drain. It runs a command to describe the job every
+    * 10 seconds. Once the job is drained, it will parse the "createTime" and "currentStateTime" (which is the time that
+    * the job is fully drained from the output of the command.
+    *
+    * @param jobId the job ID to drain
+    * @return the (job ID, start time, end time) or an error if unable to parse the output of the command.
+    */
   private def drain(jobId: String): Either[io.circe.Error, (String, ZonedDateTime, ZonedDateTime)] = {
     logger.info("The subscription is exhausted, killing the job")
 
