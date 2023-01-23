@@ -1,6 +1,6 @@
 # Google Dataflow Benchmark
 
-This tool is specialized in benchmarking Dataflow jobs on Google platform.
+This tool is specialized in benchmarking Dataflow jobs on the Google platform.
 
 Use cases:
 - find the best machine type for your workers (family and size)
